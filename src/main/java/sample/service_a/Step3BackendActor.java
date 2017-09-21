@@ -53,7 +53,7 @@ class Step3BackendActor extends BackendBaseActor {
                         batchFrequencyInterval,
                         batchFrequencyInterval,
                         getSelf(),
-                        Send.INSTANCE,
+                        CheckSendStatus.INSTANCE,
                         getContext().dispatcher(),
                         getSelf());
     }
@@ -70,7 +70,7 @@ class Step3BackendActor extends BackendBaseActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Long.class, (Long id) -> addIdentifier(getSender(), id))
-                .match(Send.class, (Send i) -> {
+                .match(CheckSendStatus.class, (CheckSendStatus i) -> {
                     if (requestDone) {
                         requestDone = false;
                     } else {
@@ -83,13 +83,11 @@ class Step3BackendActor extends BackendBaseActor {
 
     private void sendData() throws ExecutionException, InterruptedException {
         if (concurrentCalls >= concurrentCallsLimit) {
-            System.out.println(">>>>>>>>>>>>> MAX LIMIT REACHED... WAITING FOR A BIT!");
-        }
-
-        if (incomingRequests.size() > 0 && concurrentCalls < concurrentCallsLimit) {
+            System.out.println("MAX LIMIT REACHED!");
+        } else if (incomingRequests.size() > 0) {
             requestDone = true;
             concurrentCalls++;
-            System.out.println(">>>>>>>>>>> + CONCURRENT CALLS: " + concurrentCalls);
+            System.out.println("+ CONCURRENT CALLS: " + concurrentCalls);
 
             // Get this batch from the incoming requests
             Set<ActorRef> batched = incomingRequests.keySet().stream().limit(batchSize).collect(Collectors.toSet());
@@ -109,14 +107,13 @@ class Step3BackendActor extends BackendBaseActor {
                     inFlightRequests.remove(actorRef);
                 });
                 concurrentCalls--;
-                System.out.println(">>>>>>>>>>> - CONCURRENT CALLS: " + concurrentCalls);
+                System.out.println("- CONCURRENT CALLS: " + concurrentCalls);
             });
         }
     }
 
     private void addIdentifier(ActorRef sender, Long id) throws ExecutionException, InterruptedException {
         incomingRequests.put(sender, id);
-        //System.out.println(">>> incomingRequests size : " + incomingRequests.size());
         if (incomingRequests.size() >= batchSize) {
             sendData();
         }
@@ -129,7 +126,6 @@ class Step3BackendActor extends BackendBaseActor {
             sb.append(TOKEN);
         }
         String ids =  sb.toString();
-        System.out.println(">>> IDS : " + ids);
         return ids.substring(0, ids.length() - 1);
     }
 
@@ -137,9 +133,9 @@ class Step3BackendActor extends BackendBaseActor {
         return Props.create(Step3BackendActor.class, () -> new Step3BackendActor());
     }
 
-    static class Send {
-        public static final Send INSTANCE = new Send();
-        private Send() {
+    static class CheckSendStatus {
+        public static final CheckSendStatus INSTANCE = new CheckSendStatus();
+        private CheckSendStatus() {
         }
     }
 }

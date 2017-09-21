@@ -29,7 +29,7 @@ class Step2BackendActor extends BackendBaseActor {
     private final int batchSize =
             this.getContext().getSystem().settings().config().getInt("service-a.batch-size");
 
-    private final FiniteDuration batchFrequenceyInterval =
+    private final FiniteDuration batchFrequencyInterval =
             Duration.create(
                     context().system().settings().config().getDuration(
                             "service-a.batch-frequency", MILLISECONDS), MILLISECONDS);
@@ -38,10 +38,10 @@ class Step2BackendActor extends BackendBaseActor {
     public void preStart() throws Exception {
         activeScheduler =
                 this.getContext().getSystem().scheduler().schedule(
-                        batchFrequenceyInterval,
-                        batchFrequenceyInterval,
+                        batchFrequencyInterval,
+                        batchFrequencyInterval,
                         getSelf(),
-                        Send.INSTANCE,
+                        CheckSendStatus.INSTANCE,
                         getContext().dispatcher(),
                         getSelf());
     }
@@ -58,7 +58,7 @@ class Step2BackendActor extends BackendBaseActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Long.class, (Long id) -> addIdentifier(getSender(), id))
-                .match(Send.class, (Send i) -> {
+                .match(CheckSendStatus.class, (CheckSendStatus i) -> {
                     if (requestDone) {
                         requestDone = false;
                     } else {
@@ -105,9 +105,9 @@ class Step2BackendActor extends BackendBaseActor {
         return Props.create(Step2BackendActor.class, () -> new Step2BackendActor());
     }
 
-    static class Send {
-        public static final Send INSTANCE = new Send();
-        private Send() {
+    static class CheckSendStatus {
+        public static final CheckSendStatus INSTANCE = new CheckSendStatus();
+        private CheckSendStatus() {
         }
     }
 }

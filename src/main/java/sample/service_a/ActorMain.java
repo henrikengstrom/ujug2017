@@ -24,7 +24,7 @@ class ActorMain extends AllDirectives {
     private static final Long TIMEOUT = 5000L;
 
     public static void main(String[] args) throws Exception {
-        ActorSystem system = ActorSystem.create("routes");
+        ActorSystem system = ActorSystem.create("ServiceA");
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
         final ActorMain app = new ActorMain();

@@ -21,9 +21,6 @@ class Step1BackendActor extends BackendBaseActor {
     private final int batchSize =
             this.getContext().getSystem().settings().config().getInt("service-a.batch-size");
 
-    public Step1BackendActor() {
-    }
-
     public Receive createReceive() {
         return receiveBuilder().match(Long.class, (Long id) -> addIdentifier(getSender(), id)).build();
     }
@@ -53,6 +50,6 @@ class Step1BackendActor extends BackendBaseActor {
     }
 
     static Props props() {
-        return Props.create(Step1BackendActor.class, () -> new Step1BackendActor());
+        return Props.create(Step1BackendActor.class);
     }
 }

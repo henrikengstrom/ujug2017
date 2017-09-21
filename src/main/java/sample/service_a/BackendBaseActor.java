@@ -17,10 +17,14 @@ public abstract class BackendBaseActor extends AbstractActor {
 
     protected CompletableFuture<String> callService(String ids) throws ExecutionException, InterruptedException {
         return Http.get(this.getContext().getSystem())
-                .singleRequest(HttpRequest.create()
-                        .withUri(URI + ids)
-                        .withMethod(HttpMethods.GET), materializer)
-                .thenCompose(response -> Unmarshaller.entityToString().unmarshal(response.entity(), this.getContext().dispatcher(), materializer))
+                .singleRequest(
+                        HttpRequest.create()
+                                .withUri(URI + ids)
+                                .withMethod(HttpMethods.GET),
+                        materializer)
+                .thenCompose(response ->
+                        Unmarshaller.entityToString().unmarshal(
+                                response.entity(), this.getContext().dispatcher(), materializer))
                 .toCompletableFuture();
     }
 }

@@ -17,7 +17,7 @@ public class DatabaseActor extends AbstractActor {
                         Thread.sleep(simulatedDatabaseCallTime);
                         totalTime += simulatedDatabaseCallTime;
                     }
-                    getSender().tell("DB CALL TIME = " + totalTime + "ms", getSender());
+                    getSender().tell("DB CALL TIME = " + totalTime + "ms\n", getSender());
                 }).build();
     }
 

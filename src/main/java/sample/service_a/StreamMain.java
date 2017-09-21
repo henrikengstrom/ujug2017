@@ -32,11 +32,11 @@ public class StreamMain extends AllDirectives {
     private static RunnableGraph<Sink<Pair, NotUsed>> someSource = null;
 
     public static void main(String[] args) throws IOException {
-        ActorSystem system = ActorSystem.create("routes");
+        final ActorSystem system = ActorSystem.create("ServiceA");
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
         final StreamMain app = new StreamMain();
-        ActorRef streamActor = system.actorOf(StreamActor.props());
+        final ActorRef streamActor = system.actorOf(StreamActor.props());
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute(streamActor).flow(system, materializer);
         final CompletionStage<ServerBinding> binding =
                 http.bindAndHandle(
@@ -52,8 +52,6 @@ public class StreamMain extends AllDirectives {
                 .thenAccept(unbound -> system.terminate()); // and shutdown when done
 
     }
-
-    private static final String TOKEN = "-";
 
     private Route createRoute(ActorRef streamActor) {
         return route(

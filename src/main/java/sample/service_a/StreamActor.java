@@ -1,10 +1,3 @@
-/*
- * Copyright © 2015–2017 Lightbend, Inc. All rights reserved.
- * No information contained herein may be reproduced or transmitted in any form
- * or by any means without the express written permission of Lightbend, Inc.
- */
-
-
 package sample.service_a;
 
 import akka.NotUsed;
@@ -50,9 +43,8 @@ public class StreamActor extends AbstractLoggingActor {
     String serviceURI = getContext().getSystem().settings().config().getString("service-b-uri");
 
     public StreamActor() {
-        // TODO : is mergehub needed now that we are in the same context (one thread)?
         this.sink =
-                MergeHub.of(Pair.class)
+                MergeHub.of(Pair.class) // use MergeHub to merge all incoming messages into one "flow"
                         .groupedWithin(batchSize, batchFrequency)
                         .map(pairs -> generateIdsString(pairs))
                         .mapAsync(concurrentCallsLimit, generatedResult -> callService(generatedResult))
@@ -66,8 +58,9 @@ public class StreamActor extends AbstractLoggingActor {
             Source.single(pair).runWith(sink, materializer);
         }).build();
     }
+
     private Pair<String, List<Pair>> generateIdsString(List<Pair> pairs) {
-        StringBuilder sb = new StringBuilder(pairs.size() * 2);
+        StringBuilder sb = new StringBuilder(batchSize * 2);
         ListIterator<Pair> list = pairs.listIterator();
         while (list.hasNext()) {
             long l = (Long) list.next().first();
@@ -90,6 +83,7 @@ public class StreamActor extends AbstractLoggingActor {
                             String result = Unmarshaller.entityToString().unmarshal(response.entity(), getContext().dispatcher(), materializer).toCompletableFuture().get();
                             for (Pair pair : input.second()) {
                                 HttpResponse resp = HttpResponse.create().withStatus(StatusCodes.OK).withEntity(result);
+                                // Complete the promise with the result from the backend
                                 ((Promise) pair.second()).success(resp);
                             }
                         } catch (Exception e) {

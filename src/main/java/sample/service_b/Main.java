@@ -26,7 +26,7 @@ class Main extends AllDirectives {
     private static final Long TIMEOUT = 30000L;
 
     public static void main(String[] args) throws Exception {
-        ActorSystem system = ActorSystem.create("routes");
+        ActorSystem system = ActorSystem.create("ServiceB");
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
         final Main app = new Main();
@@ -65,7 +65,6 @@ class Main extends AllDirectives {
                         System.out.println("IDS RECEIVED: " + ids);
                         CompletionStage<HttpResponse> response = ask(serviceBackendActor, new BackendActor.Identifiers(splitIds(ids)), TIMEOUT).thenApply(o -> {
                             if (o instanceof String) {
-                                System.out.println(">>>> response from db actor: " + o.toString());
                                 return HttpResponse.create().withEntity(o.toString());
                             } else {
                                 return HttpResponse.create().withStatus(StatusCodes.BAD_REQUEST);
